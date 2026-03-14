@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morocco vs Turkey — Bilateral Trade Analysis</title>
+    <style>
+        /* ============================================================
+           CSS RESET & BASE STYLES
+           ============================================================ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --dark: #2c3e50;
+            --red: #e74c3c;
+            --green: #2ecc71;
+            --blue: #3498db;
+            --orange: #f39c12;
+            --purple: #9b59b6;
+            --teal: #1abc9c;
+            --light: #ecf0f1;
+            --white: #ffffff;
+            --gray: #95a5a6;
+            --slide-width: 100vw;
+            --slide-height: 100vh;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark);
+            color: var(--white);
+        }
+
+        /* ============================================================
+           SLIDE CONTAINER
+           ============================================================ */
+        .slides-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 80px;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            pointer-events: none;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        .slide.exit-left {
+            opacity: 0;
+            transform: translateX(-100px);
+        }
+
+        /* ============================================================
+           SLIDE BACKGROUNDS
+           ============================================================ */
+        .slide--title {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        .slide--dark {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        .slide--accent {
+            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+        }
+
+        .slide--green {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        }
+
+        .slide--blue {
+            background: linear-gradient(135deg, #2980b9 0%, #3498db 100%);
+        }
+
+        .slide--chart {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2c3e50 100%);
+        }
+
+        .slide--conclusion {
+            background: linear-gradient(135deg, #0f3460 0%, #533483 50%, #e94560 100%);
+        }
+
+        /* ============================================================
+           TYPOGRAPHY
+           ============================================================ */
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+            color: var(--white);
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 30px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .highlight {
+            color: var(--orange);
+            font-weight: 700;
+        }
+
+        .highlight-red {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .highlight-green {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        /* ============================================================
+           COMPONENTS
+           ============================================================ */
+
+        /* Metric Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .metric-card .value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .metric-card .label {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .metric-card.deficit .value { color: var(--red); }
+        .metric-card.surplus .value { color: var(--green); }
+        .metric-card.neutral .value { color: var(--blue); }
+        .metric-card.warning .value { color: var(--orange); }
+
+        /* Sector Table */
+        .sector-table {
+            width: 100%;
+            max-width: 1100px;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+
+        .sector-table th {
+            background: rgba(255,255,255,0.15);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+        }
+
+        .sector-table td {
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sector-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .badge.deficit { background: rgba(231,76,60,0.3); color: var(--red); }
+        .badge.surplus { background: rgba(46,204,113,0.3); color: var(--green); }
+
+        /* Chart Image */
+        .chart-container {
+            max-width: 85%;
+            max-height: 65vh;
+            margin: 10px auto;
+            text-align: center;
+        }
+
+        .chart-container img {
+            max-width: 100%;
+            max-height: 60vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .chart-caption {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Quote Block */
+        .quote-block {
+            background: rgba(255,255,255,0.08);
+            border-left: 4px solid var(--orange);
+            padding: 25px 30px;
+            margin: 20px 0;
+            border-radius: 0 12px 12px 0;
+            max-width: 900px;
+            font-style: italic;
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .quote-block .author {
+            display: block;
+            text-align: right;
+            font-style: normal;
+            font-weight: 700;
+            margin-top: 12px;
+            color: var(--orange);
+        }
+
+        /* Bullet List */
+        .bullet-list {
+            list-style: none;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .bullet-list li {
+            padding: 12px 0;
+            padding-left: 35px;
+            position: relative;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .bullet-list li::before {
+            content: '▸';
+            position: absolute;
+            left: 10px;
+            color: var(--orange);
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        /* Score Display */
+        .score-display {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .score-team {
+            text-align: center;
+        }
+
+        .score-team .flag {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .score-team .name {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .score-vs {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--red);
+            text-shadow: 0 0 30px rgba(231,76,60,0.5);
+        }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .col {
+            padding: 20px;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            max-width: 800px;
+            margin: 10px 0;
+        }
+
+        .progress-bar .bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .progress-bar .bar-track {
+            height: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar .bar-fill {
+            height: 100%;
+            border-radius: 15px;
+            transition: width 1.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        /* ============================================================
+           NAVIGATION
+           ============================================================ */
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transition: background 0.3s ease, transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .progress-dot.active {
+            background: var(--orange);
+            transform: scale(1.3);
+        }
+
+        /* ============================================================
+           ANIMATIONS
+           ============================================================ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes countUp {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; opacity: 0; }
+        .delay-2 { animation-delay: 0.4s; opacity: 0; }
+        .delay-3 { animation-delay: 0.6s; opacity: 0; }
+        .delay-4 { animation-delay: 0.8s; opacity: 0; }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .slide { padding: 30px 20px; }
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.6rem; }
+            .metrics-grid { grid-template-columns: 1fr 1fr; }
+            .two-col { grid-template-columns: 1fr; }
+            .chart-container { max-width: 95%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="slides-container" id="slidesContainer">
+
+    <!-- ============================================================
+         SLIDE 1: TITLE
+         ============================================================ -->
+    <div class="slide slide--title active" data-slide="0">
+        <h1 class="animate-in">Morocco vs Turkey</h1>
+        <h1 class="animate-in delay-1" style="font-size: 2rem; color: var(--orange);">
+            Bilateral Trade Analysis 2021–2024
+        </h1>
+        <p class="subtitle animate-in delay-2">
+            A Data-Driven Response to the Minister's Challenge
+        </p>
+
+        <div class="score-display animate-in delay-3">
+            <div class="score-team">
+                <div class="flag">🇲🇦</div>
+                <div class="name">Morocco</div>
+            </div>
+            <div class="score-vs">0 – 5</div>
+            <div class="score-team">
+                <div class="flag">🇹🇷</div>
+                <div class="name">Turkey</div>
+            </div>
+        </div>
+
+        <p class="animate-in delay-4" style="color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 20px;">
+            Data Source: ITC / UN COMTRADE / Office des Changes du Maroc
+        </p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 2: THE MINISTER'S CHALLENGE
+         ============================================================ -->
+    <div class="slide slide--accent" data-slide="1">
+        <h2>The Minister's Challenge</h2>
+
+        <div class="quote-block">
+            "You have one of the best educations in the world, you have among the best expertise
+            in the world, and yet the Turks are beating you 5-0 in conquests that you cannot achieve.
+            Why? Lack of ambition? I don't think so. You fought to get into those schools. You went
+            to the deepest part of yourself. And then that's it, it's over... Well, ladies and
+            gentlemen, vacation is over."
+            <span class="author">— Minister of Industry and Trade</span>
+        </div>
+
+        <h3 style="margin-top: 30px; text-align: center;">
+            Our Mission: <span class="highlight">Quantify the "5-0" Score</span>
+        </h3>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 3: KEY METRICS
+         ============================================================ -->
+    <div class="slide slide--dark" data-slide="2">
+        <h2>Key Metrics at a Glance</h2>
+
+        <div class="metrics-grid">
+            <div class="metric-card deficit animate-in delay-1">
+                <div class="value">$3.95B</div>
+                <div class="label">Imports from Turkey</div>
+            </div>
+            <div class="metric-card surplus animate-in delay-1">
+                <div class="value">$1.17B</div>
+                <div class="label">Exports to Turkey</div>
+            </div>
+            <div class="metric-card deficit animate-in delay-2">
+                <div class="value">$2.78B</div>
+                <div class="label">Trade Deficit</div>
+            </div>
+            <div class="metric-card warning animate-in delay-2">
+                <div class="value">29.7%</div>
+                <div class="label">Coverage Ratio</div>
+            </div>
+            <div class="metric-card neutral animate-in delay-3">
+                <div class="value">3.4×</div>
+                <div class="label">Deficit Ratio</div>
+            </div>
+            <div class="metric-card surplus animate-in delay-3">
+                <div class="value">13.6%</div>
+                <div class="label">Export CAGR</div>
+            </div>
+            <div class="metric-card deficit animate-in delay-4">
+                <div class="value">5.3%</div>
+                <div class="label">Import CAGR</div>
+            </div>
+            <div class="metric-card neutral animate-in delay-4">
+                <div class="value">14</div>
+                <div class="label">Products with RCA &gt; 1</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 4: TRADE EVOLUTION
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="3">
+        <h2>Trade Evolution (2021–2024)</h2>
+        <div class="chart-container">
+            <img src="../charts/01_trade_evolution.png" alt="Trade Evolution Chart">
+        </div>
+        <p class="chart-caption">Persistent gap between imports and exports illustrates the structural trade deficit</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 5: THE 5-0 SCORE
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="4">
+        <h2>The "5-0" Score — Visualized</h2>
+        <div class="chart-container">
+            <img src="../charts/03_five_zero_score.png" alt="5-0 Score Chart">
+        </div>
+        <p class="chart-caption">Turkey's dominance across key trade metrics</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 6: SECTOR BREAKDOWN
+         ============================================================ -->
+    <div class="slide slide--dark" data-slide="5">
+        <h2>Sector-by-Sector Breakdown (2024)</h2>
+
+        <table class="sector-table">
+            <thead>
+                <tr>
+                    <th>Sector</th>
+                    <th>Imports ($M)</th>
+                    <th>Exports ($M)</th>
+                    <th>Balance ($M)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>High-Tech & Machinery</td>
+                    <td>923.8</td>
+                    <td>514.8</td>
+                    <td>−409.0</td>
+                    <td><span class="badge deficit">Deficit</span></td>
+                </tr>
+                <tr>
+                    <td>Textiles & Apparel</td>
+                    <td>749.4</td>
+                    <td>14.0</td>
+                    <td>−735.4</td>
+                    <td><span class="badge deficit">Deficit</span></td>
+                </tr>
+                <tr>
+                    <td>Metals & Minerals</td>
+                    <td>627.6</td>
+                    <td>4.9</td>
+                    <td>−622.7</td>
+                    <td><span class="badge deficit">Deficit</span></td>
+                </tr>
+                <tr>
+                    <td>Plastics & Rubber</td>
+                    <td>385.9</td>
+                    <td>9.0</td>
+                    <td>−376.9</td>
+                    <td><span class="badge deficit">Deficit</span></td>
+                </tr>
+                <tr>
+                    <td>Energy & Fuels</td>
+                    <td>259.4</td>
+                    <td>0.1</td>
+                    <td>−259.3</td>
+                    <td><span class="badge deficit">Deficit</span></td>
+                </tr>
+                <tr>
+                    <td>Chemicals & Pharma</td>
+                    <td>188.6</td>
+                    <td>278.6</td>
+                    <td>+90.1</td>
+                    <td><span class="badge surplus">Surplus</span></td>
+                </tr>
+                <tr>
+                    <td>Agriculture & Food</td>
+                    <td>107.8</td>
+                    <td>236.5</td>
+                    <td>+128.7</td>
+                    <td><span class="badge surplus">Surplus</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 7: SECTOR BALANCE CHART
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="6">
+        <h2>Sector Balance Visualization</h2>
+        <div class="chart-container">
+            <img src="../charts/02_sector_balance_2024.png" alt="Sector Balance 2024">
+        </div>
+        <p class="chart-caption">Red = deficit sectors, Green = surplus sectors</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 8: TOP DEFICIT PRODUCTS
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="7">
+        <h2>Top 10 Deficit Products</h2>
+        <div class="chart-container">
+            <img src="../charts/06_top10_deficit_products.png" alt="Top 10 Deficit Products">
+        </div>
+        <p class="chart-caption">Products driving Morocco's trade imbalance with Turkey</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 9: TOP SURPLUS PRODUCTS
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="8">
+        <h2>Top 10 Surplus Products</h2>
+        <div class="chart-container">
+            <img src="../charts/07_top10_surplus_products.png" alt="Top 10 Surplus Products">
+        </div>
+        <p class="chart-caption">Products where Morocco maintains a competitive edge</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 10: GROWTH ANALYSIS (CAGR)
+         ============================================================ -->
+    <div class="slide slide--dark" data-slide="9">
+        <h2>Growth Analysis — A Silver Lining</h2>
+
+        <div class="two-col">
+            <div class="col">
+                <h3 style="color: var(--red);">Import CAGR: 5.3%</h3>
+                <div class="progress-bar">
+                    <div class="bar-label"><span>Import Growth</span><span>5.3%</span></div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 39%; background: var(--red);">5.3%</div>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--green); margin-top: 20px;">Export CAGR: 13.6%</h3>
+                <div class="progress-bar">
+                    <div class="bar-label"><span>Export Growth</span><span>13.6%</span></div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: 100%; background: var(--green);">13.6%</div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 25px; color: rgba(255,255,255,0.7); font-size: 1rem; line-height: 1.5;">
+                    Morocco's exports are growing <span class="highlight">2.6× faster</span>
+                    than imports. If this trend continues, the gap will narrow over time.
+                </p>
+            </div>
+
+            <div class="col">
+                <h3>Fastest Growing Export Sectors</h3>
+                <ul class="bullet-list">
+                    <li><span class="highlight-green">High-Tech & Machinery:</span> +33.1% CAGR</li>
+                    <li><span class="highlight-green">Textiles & Apparel:</span> +23.3% CAGR</li>
+                    <li><span class="highlight-green">Agriculture & Food:</span> +10.6% CAGR</li>
+                    <li><span class="highlight-green">Plastics & Rubber:</span> +8.6% CAGR</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 11: CAGR BY SECTOR CHART
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="10">
+        <h2>CAGR by Sector (2021→2024)</h2>
+        <div class="chart-container">
+            <img src="../charts/17_cagr_by_sector.png" alt="CAGR by Sector">
+        </div>
+        <p class="chart-caption">Compound Annual Growth Rate comparison: Import (red) vs Export (green)</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 12: DEFICIT WATERFALL
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="11">
+        <h2>Trade Deficit Waterfall</h2>
+        <div class="chart-container">
+            <img src="../charts/18_waterfall_deficit.png" alt="Deficit Waterfall">
+        </div>
+        <p class="chart-caption">How each sector contributes to the overall $2.78B trade deficit</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 13: HHI CONCENTRATION
+         ============================================================ -->
+    <div class="slide slide--dark" data-slide="12">
+        <h2>Market Concentration (HHI)</h2>
+
+        <div class="two-col">
+            <div class="col" style="text-align: center;">
+                <h3 style="color: var(--red);">Imports HHI</h3>
+                <div class="metric-card deficit" style="margin: 20px auto; max-width: 250px;">
+                    <div class="value" style="font-size: 3rem;">524</div>
+                    <div class="label">Low Concentration</div>
+                </div>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.95rem;">
+                    Turkey sells a <strong>wide variety</strong> of products to Morocco — highly diversified imports.
+                </p>
+            </div>
+            <div class="col" style="text-align: center;">
+                <h3 style="color: var(--green);">Exports HHI</h3>
+                <div class="metric-card warning" style="margin: 20px auto; max-width: 250px;">
+                    <div class="value" style="font-size: 3rem;">1,589</div>
+                    <div class="label">Moderate Concentration</div>
+                </div>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.95rem;">
+                    Morocco's exports are <strong>concentrated</strong> in fewer products — higher dependency risk.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 14: HHI CHART
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="13">
+        <h2>Concentration Analysis</h2>
+        <div class="chart-container">
+            <img src="../charts/21_hhi_concentration.png" alt="HHI Concentration">
+        </div>
+        <p class="chart-caption">Top products by trade share — Imports (left) vs Exports (right)</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 15: COMPETITIVENESS MATRIX
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="14">
+        <h2>Competitiveness Matrix</h2>
+        <div class="chart-container">
+            <img src="../charts/19_competitiveness_matrix.png" alt="Competitiveness Matrix">
+        </div>
+        <p class="chart-caption">Import CAGR vs Export CAGR — Ideal position: upper-left quadrant</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 16: OPPORTUNITY ANALYSIS
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="15">
+        <h2>Strategic Opportunities</h2>
+        <div class="chart-container">
+            <img src="../charts/20_opportunity_analysis.png" alt="Opportunity Analysis">
+        </div>
+        <p class="chart-caption">Trade gap (left) and coverage ratio (right) by sector</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 17: EXECUTIVE DASHBOARD
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="16">
+        <h2>Executive Dashboard</h2>
+        <div class="chart-container">
+            <img src="../charts/16_executive_dashboard.png" alt="Executive Dashboard">
+        </div>
+        <p class="chart-caption">Comprehensive overview of all key metrics and trends</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 18: ADDITIONAL CHARTS
+         ============================================================ -->
+    <div class="slide slide--chart" data-slide="17">
+        <h2>Import & Export Composition</h2>
+        <div class="chart-container" style="display: flex; gap: 20px; justify-content: center; max-width: 95%;">
+            <img src="../charts/10_treemap_imports.png" alt="Import Treemap" style="max-width: 48%; max-height: 55vh;">
+            <img src="../charts/11_treemap_exports.png" alt="Export Treemap" style="max-width: 48%; max-height: 55vh;">
+        </div>
+        <p class="chart-caption">Import composition (left) vs Export composition (right) by product category</p>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 19: RECOMMENDATIONS
+         ============================================================ -->
+    <div class="slide slide--blue" data-slide="18">
+        <h2>Strategic Recommendations</h2>
+
+        <div class="two-col">
+            <div class="col">
+                <h3 style="color: var(--orange);">Short-Term (1-2 Years)</h3>
+                <ul class="bullet-list">
+                    <li>Scale up Agriculture & Food exports (already in surplus)</li>
+                    <li>Accelerate High-Tech exports (33.1% CAGR momentum)</li>
+                    <li>Invest in high-value textile segments (23.3% export CAGR)</li>
+                </ul>
+            </div>
+            <div class="col">
+                <h3 style="color: var(--orange);">Medium-Term (3-5 Years)</h3>
+                <ul class="bullet-list">
+                    <li>Import substitution in Plastics & Rubber</li>
+                    <li>Diversify export basket (reduce HHI from 1,589)</li>
+                    <li>Leverage Tangier Free Zone for automotive exports</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; max-width: 900px;">
+            <h3 style="color: var(--orange); text-align: center;">Long-Term Vision (5+ Years)</h3>
+            <ul class="bullet-list">
+                <li>Match Turkey's trillion-dollar trade ambition with an equally bold Moroccan roadmap</li>
+                <li>Use AfCFTA to build scale and compete in third markets across Africa</li>
+                <li>Establish technology transfer joint ventures with Turkish industrial leaders</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         SLIDE 20: CONCLUSION
+         ============================================================ -->
+    <div class="slide slide--conclusion" data-slide="19">
+        <h2>Conclusion</h2>
+
+        <div style="max-width: 800px;">
+            <h3 style="text-align: center; margin-bottom: 25px;">The "5-0" is real — but the trend is changing</h3>
+
+            <div class="metrics-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 30px;">
+                <div class="metric-card deficit">
+                    <div class="value">$2.78B</div>
+                    <div class="label">Current Deficit</div>
+                </div>
+                <div class="metric-card surplus">
+                    <div class="value">2.6×</div>
+                    <div class="label">Export growth outpacing imports</div>
+                </div>
+                <div class="metric-card neutral">
+                    <div class="value">14</div>
+                    <div class="label">Products with competitive advantage</div>
+                </div>
+                <div class="metric-card surplus">
+                    <div class="value">33.1%</div>
+                    <div class="label">High-Tech export CAGR</div>
+                </div>
+            </div>
+
+            <div class="quote-block" style="border-left-color: var(--white);">
+                "Mesdames et messieurs, c'est fini les vacances."
+                <span class="author" style="color: var(--white);">— The Minister</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     NAVIGATION CONTROLS
+     ============================================================ -->
+<div class="nav-controls">
+    <button class="nav-btn" id="prevBtn" onclick="prevSlide()" title="Previous (←)">◀</button>
+    <div class="progress-dots" id="progressDots"></div>
+    <span class="slide-counter" id="slideCounter">1 / 20</span>
+    <button class="nav-btn" id="nextBtn" onclick="nextSlide()" title="Next (→)">▶</button>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+    // ============================================================
+    // SLIDE MANAGEMENT
+    // ============================================================
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let currentSlide = 0;
+
+    function initDots() {
+        const dotsContainer = document.getElementById('progressDots');
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = 'progress-dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', () => goToSlide(i));
+            dotsContainer.appendChild(dot);
+        }
+    }
+
+    function updateSlide(direction) {
+        const prevSlideEl = slides[currentSlide - direction] || slides[currentSlide];
+
+        // Remove active from previous
+        if (prevSlideEl) {
+            prevSlideEl.classList.remove('active');
+            if (direction > 0) {
+                prevSlideEl.classList.add('exit-left');
+            }
+            setTimeout(() => prevSlideEl.classList.remove('exit-left'), 600);
+        }
+
+        // Activate current
+        slides[currentSlide].classList.add('active');
+
+        // Update counter
+        document.getElementById('slideCounter').textContent =
+            `${currentSlide + 1} / ${totalSlides}`;
+
+        // Update dots
+        document.querySelectorAll('.progress-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === currentSlide);
+        });
+
+        // Update buttons
+        document.getElementById('prevBtn').disabled = currentSlide === 0;
+        document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+
+        // Re-trigger animations for the active slide
+        triggerAnimations(slides[currentSlide]);
+    }
+
+    function nextSlide() {
+        if (currentSlide < totalSlides - 1) {
+            currentSlide++;
+            updateSlide(1);
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateSlide(-1);
+        }
+    }
+
+    function goToSlide(index) {
+        const direction = index > currentSlide ? 1 : -1;
+        slides[currentSlide].classList.remove('active');
+        currentSlide = index;
+        updateSlide(direction);
+    }
+
+    function triggerAnimations(slide) {
+        const animated = slide.querySelectorAll('.animate-in');
+        animated.forEach(el => {
+            el.style.animation = 'none';
+            // Force reflow
+            void el.offsetHeight;
+            el.style.animation = '';
+        });
+    }
+
+    // ============================================================
+    // KEYBOARD NAVIGATION
+    // ============================================================
+    document.addEventListener('keydown', (e) => {
+        switch(e.key) {
+            case 'ArrowRight':
+            case 'ArrowDown':
+            case ' ':
+                e.preventDefault();
+                nextSlide();
+                break;
+            case 'ArrowLeft':
+            case 'ArrowUp':
+                e.preventDefault();
+                prevSlide();
+                break;
+            case 'Home':
+                e.preventDefault();
+                goToSlide(0);
+                break;
+            case 'End':
+                e.preventDefault();
+                goToSlide(totalSlides - 1);
+                break;
+        }
+    });
+
+    // ============================================================
+    // TOUCH NAVIGATION
+    // ============================================================
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+
+    document.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) nextSlide();
+            else prevSlide();
+        }
+    });
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+    initDots();
+    updateSlide(0);
+</script>
+
+</body>
+</html>

@@ -3,4 +3,11 @@ __pycache__/
 node_modules/
 .vscode/
 *.log
-
+*.aux
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+report/.~lock.*
+report/*.pdf
